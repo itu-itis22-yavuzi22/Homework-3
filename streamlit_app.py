@@ -77,22 +77,27 @@ def extract_entities(text, ner_pipeline):
     #TODO
 
     entities = ner_pipeline(text,grouped_entities=True)
+    ORGS = [entity for entity in entities if entity['entity_group'] == 'ORG']
+    LOCS = [entity for entity in entities if entity['entity_group'] == 'LOC']
+    PERS = [entity for entity in entities if entity['entity_group'] == 'PER']
+    
+    ORGS = list(set(ORGS))
+    LOCS = list(set(LOCS))
+    PERS = list(set(PERS))
+
     st.header("Entities")
 
     st.subheader("Organizations (ORGs):")
-    for entity in entities:
-        if entity['entity_group'] == "ORG":
-            st.markdown('-' + entity['word'])
+    for org in ORGS:
+            st.markdown('-' + org['word'])
 
     st.subheader("Locations (LOCs):")
-    for entity in entities:
-        if entity['entity_group'] == "LOC":
-            st.markdown('-' + entity['word'])
+    for loc in LOCS:
+        st.markdown('-' + loc['word'])
 
     st.subheader("Persons (PERs):")
-    for entity in entities:
-        if entity['entity_group'] == "PER":
-            st.markdown('-' + entity['word'])
+    for per in PERS:
+        st.markdown('-' + per['word'])
             
 
 
