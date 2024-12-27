@@ -44,12 +44,9 @@ def transcribe_audio(uploaded_file):
     processor,tokenizer, model = load_whisper_model()
     
     waveform, sampling_rate = soundfile.read(uploaded_file)
+    waveform = waveform.squeeze()
     if sampling_rate != 16000:
         waveform = torchaudio.functional.resample(waveform, orig_freq=sampling_rate, new_freq=16000)
-
-
-    input_features = processor(waveform.squeeze(), sampling_rate=16000, return_tensors="pt").input_features 
-    predicted_ids = model.generate(input_features)
 
     pipe = pipeline(
     "automatic-speech-recognition",
@@ -61,7 +58,7 @@ def transcribe_audio(uploaded_file):
     )
 
 
-    transcription = pipe(waveform.squeeze(), batch_size=8)["text"]
+    transcription = pipe(waveform, batch_size=8)["text"]
     return transcription
 
 # ------------------------------
