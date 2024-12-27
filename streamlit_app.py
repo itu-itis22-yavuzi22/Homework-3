@@ -43,7 +43,8 @@ def transcribe_audio(uploaded_file):
     # TODO
     processor,tokenizer, model = load_whisper_model()
     
-    waveform, sampling_rate = soundfile.read(uploaded_file)
+    waveform, sampling_rate = torchaudio.load(uploaded_file)
+    
     waveform = waveform.squeeze()
     if sampling_rate != 16000:
         waveform = torchaudio.functional.resample(waveform, orig_freq=sampling_rate, new_freq=16000)
