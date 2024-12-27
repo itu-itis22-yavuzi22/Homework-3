@@ -59,7 +59,7 @@ def transcribe_audio(uploaded_file):
     )
 
 
-    transcription = pipe(waveform, batch_size=8)["text"]
+    transcription = pipe(waveform.numpy(), batch_size=8)["text"]
     return transcription
 
 # ------------------------------
