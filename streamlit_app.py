@@ -102,7 +102,7 @@ def main():
             temp_file.write(uploaded_file.read())
     
         transcription = transcribe_audio("/tmp/" + uploaded_file.name)
-
+        st.write(transcription)
 
         tokenizer, model = load_ner_model()
         ner_pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
