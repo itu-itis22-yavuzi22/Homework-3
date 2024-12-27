@@ -76,11 +76,24 @@ def extract_entities(text, ner_pipeline):
     """
     #TODO
 
-    ner_results = ner_pipeline(text,grouped_entities=True)
-    st.write("DOIG")
-    for entity in ner_results:
-        st.write("DOIG")
-        st.write(f"Entity: {entity['word']}, Type: {entity['entity_group']}")
+    entities = ner_pipeline(text,grouped_entities=True)
+    st.header("Entities")
+
+    st.subheader("Organizations (ORGs):")
+    for entity in entities:
+        if entity['entity_group'] == "ORG":
+            st.markdown('-' + entity['word'])
+
+    st.subheader("Locations (LOCs):")
+    for entity in entities:
+        if entity['entity_group'] == "LOC":
+            st.markdown('-' + entity['word'])
+
+    st.subheader("Persons (PERs):")
+    for entity in entities:
+        if entity['entity_group'] == "PER":
+            st.markdown('-' + entity['word'])
+            
 
 
 # ------------------------------
@@ -94,6 +107,7 @@ def main():
     STUDENT_ID = "150220304"
     st.write(f"**{STUDENT_ID} - {STUDENT_NAME}**")
 
+    
     # TODO
     # Fill here to create the streamlit application by using the functions you filled
     uploaded_file = st.file_uploader("Upload an audio file", type=['wav'], accept_multiple_files=False)
@@ -101,10 +115,16 @@ def main():
         with open("/tmp/" + uploaded_file.name, 'wb') as temp_file:
             temp_file.write(uploaded_file.read())
     
+        st.subheader(":blue-background[Transcribing...]")
         transcription = transcribe_audio("/tmp/" + uploaded_file.name)
+        st.header("Transcription: ")
+        st.write(transcription)
+
 
         tokenizer, model = load_ner_model()
         ner_pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
+
+        st.subheader(":blue-background[Extracting entities...]")
         extract_entities(transcription, ner_pipeline)
 
     
