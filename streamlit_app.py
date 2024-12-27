@@ -1,7 +1,7 @@
 import streamlit as st
 from transformers import pipeline
-import soundfile
-from transformers import WhisperProcessor, WhisperForConditionalGeneration
+import soundfile, torchaudio
+from transformers import WhisperProcessor, WhisperForConditionalGeneration, WhisperTokenizer
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 
 # ------------------------------
@@ -12,8 +12,10 @@ def load_whisper_model():
     Load the Whisper model for audio transcription.
     """
     # TODO
+    processor = WhisperProcessor.from_pretrained("openai/whisper-tiny")
+    tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-tiny")
     model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny")
-    return model
+    return processor,tokenizer, model 
 
 # ------------------------------
 # Load NER Model
@@ -39,19 +41,27 @@ def transcribe_audio(uploaded_file):
         str: Transcribed text from the audio file.
     """
     # TODO
-    model = load_whisper_model()
+    processor,tokenizer, model = load_whisper_model()
+    
+    waveform, sampling_rate = soundfile.read(uploaded_file)
+    if sampling_rate != 16000:
+        waveform = torchaudio.functional.resample(waveform, orig_freq=sampling_rate, new_freq=16000)
 
-    waveform , sampling_rate = soundfile.read(uploaded_file)
-    #waveform = torch.tensor(waveform).unsqueeze(0)
+
+    input_features = processor(waveform.squeeze(), sampling_rate=16000, return_tensors="pt").input_features 
+    predicted_ids = model.generate(input_features)
 
     pipe = pipeline(
     "automatic-speech-recognition",
     model=model,
+    processor=processor,
+    tokenizer=tokenizer,
+    feature_extractor=processor.feature_extractor,
     chunk_length_s=30,
     )
 
 
-    transcription = pipe(waveform, batch_size=8)["text"]
+    transcription = pipe(waveform.squeeze(), batch_size=8)["text"]
     return transcription
 
 # ------------------------------
@@ -69,8 +79,10 @@ def extract_entities(text, ner_pipeline):
     #TODO
 
     ner_results = ner_pipeline(text)
+    st.write("DOIG")
     for entity in ner_results:
-        print(f"Entity: {entity['word']}, Type: {entity['entity_group']}")
+        st.write("DOIG")
+        st.write(f"Entity: {entity['word']}, Type: {entity['entity_group']}")
 
 
 # ------------------------------
@@ -90,10 +102,13 @@ def main():
     if uploaded_file is not None:
         with open("/tmp/" + uploaded_file.name, 'wb') as temp_file:
             temp_file.write(uploaded_file.read())
-
-        st.write("/tmp/" + uploaded_file.name)
+    
         transcription = transcribe_audio("/tmp/" + uploaded_file.name)
-        txt = st.text(transcription)
+
+
+        tokenizer, model = load_ner_model()
+        ner_pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
+        extract_entities(transcription, ner_pipeline)
 
     
 
