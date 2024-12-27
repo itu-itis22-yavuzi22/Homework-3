@@ -76,7 +76,7 @@ def extract_entities(text, ner_pipeline):
     """
     #TODO
 
-    ner_results = ner_pipeline(text)
+    ner_results = ner_pipeline(text,grouped_entities=True)
     st.write("DOIG")
     for entity in ner_results:
         st.write("DOIG")
@@ -102,7 +102,6 @@ def main():
             temp_file.write(uploaded_file.read())
     
         transcription = transcribe_audio("/tmp/" + uploaded_file.name)
-        st.write(transcription)
 
         tokenizer, model = load_ner_model()
         ner_pipeline = pipeline("ner", model=model, tokenizer=tokenizer)
